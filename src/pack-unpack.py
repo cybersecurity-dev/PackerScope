@@ -1,10 +1,11 @@
 import os
+import shutil
 import subprocess
 import sys
 
 def pack_pe_files(directory, upx_path="upx"):
     """
-    Pack all PE files in a directory using UPX.
+    Pack all PE files in a directory using UPX, saving packed files in a new directory.
     
     Args:
         directory (str): The path to the directory containing PE files.
@@ -14,29 +15,36 @@ def pack_pe_files(directory, upx_path="upx"):
         print(f"Error: Directory '{directory}' does not exist.")
         sys.exit(1)
 
+    output_dir = os.path.dirname(directory) + "/" + os.path.basename(directory) + "_upx/"
+    print(f"Files will save into: {output_dir}")
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
     for root, _, files in os.walk(directory):
         for file in files:
             file_path = os.path.join(root, file)
             if is_pe_file(file_path):
-                print(f"Packing {file_path}...")
+                # Determine relative path for saving in the output directory
+                relative_path = os.path.relpath(file_path, directory)
+                packed_file_path = os.path.join(output_dir, relative_path)
+                
+                # Ensure the output subdirectories exist
+                os.makedirs(os.path.dirname(packed_file_path), exist_ok=True)
+
+                # Copy the original file to the output directory
+                shutil.copy2(file_path, packed_file_path)
+
+                print(f"Packing {packed_file_path}...")
                 try:
-                    subprocess.run([upx_path, "-9", file_path], check=True)
+                    subprocess.run([upx_path, "-9", "--force", packed_file_path], check=True)
+                    print(f"Files saved into: {output_dir}")
                 except subprocess.CalledProcessError as e:
-                    print(f"Failed to pack {file_path}: {e}")
+                    print(f"Failed to pack {packed_file_path}: {e}")
                 except FileNotFoundError:
                     print("Error: UPX is not installed or not found in PATH.")
                     sys.exit(1)
 
-def is_pe_file(file_path):
-    """
-    Check if a file is a PE file by reading its magic number.
-    
-    Args:
-        file_path (str): Path to the file to check.
-
-    Returns:
-        bool: True if the file is a PE file, False otherwise.
-    """
+def is_pe_file(file_path) -> bool:
     try:
         with open(file_path, "rb") as f:
             magic = f.read(2)
