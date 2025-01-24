@@ -4,6 +4,15 @@ import subprocess
 import sys
 import lzma
 
+def is_pe_file(file_path) -> bool:
+    try:
+        with open(file_path, "rb") as f:
+            magic = f.read(2)
+        return magic == b"MZ"  # PE files start with the "MZ" signature
+    except Exception as e:
+        print(f"Error checking file {file_path}: {e}")
+        return False
+
 def pack_with_upx(directory, upx_path="upx") -> bool:
     output_dir = os.path.dirname(directory) + "_upx/"
     print(f"Files will save into: {output_dir}")
@@ -59,7 +68,7 @@ def pack_with_mpress(directory, mpress_path="mpress") -> bool:
 
                 print(f"Packing {packed_file_path}...")
                 try:
-                    subprocess.run(["mpress", packed_file_path], check=True)
+                    subprocess.run(["wine", mpress_path, packed_file_path], check=True)
                     print(f"Files saved into: {output_dir}")
                 except subprocess.CalledProcessError as e:
                     print(f"Failed to pack {packed_file_path}: {e}")
@@ -69,14 +78,6 @@ def pack_with_mpress(directory, mpress_path="mpress") -> bool:
                     sys.exit(1)
     return True
 
-def is_pe_file(file_path) -> bool:
-    try:
-        with open(file_path, "rb") as f:
-            magic = f.read(2)
-        return magic == b"MZ"  # PE files start with the "MZ" signature
-    except Exception as e:
-        print(f"Error checking file {file_path}: {e}")
-        return False
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
@@ -85,3 +86,4 @@ if __name__ == "__main__":
     
     directory = sys.argv[1]
     pack_with_mpress(directory)
+    pack_with_upx(directory)
