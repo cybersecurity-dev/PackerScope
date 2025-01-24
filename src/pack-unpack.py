@@ -2,20 +2,10 @@ import os
 import shutil
 import subprocess
 import sys
+import lzma
 
-def pack_pe_files(directory, upx_path="upx"):
-    """
-    Pack all PE files in a directory using UPX, saving packed files in a new directory.
-    
-    Args:
-        directory (str): The path to the directory containing PE files.
-        upx_path (str): Path to the UPX executable (default assumes it's in PATH).
-    """
-    if not os.path.exists(directory):
-        print(f"Error: Directory '{directory}' does not exist.")
-        sys.exit(1)
-
-    output_dir = os.path.dirname(directory) + "/" + os.path.basename(directory) + "_upx/"
+def pack_with_upx(directory, upx_path="upx") -> bool:
+    output_dir = os.path.dirname(directory) + "_upx/"
     print(f"Files will save into: {output_dir}")
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -40,9 +30,11 @@ def pack_pe_files(directory, upx_path="upx"):
                     print(f"Files saved into: {output_dir}")
                 except subprocess.CalledProcessError as e:
                     print(f"Failed to pack {packed_file_path}: {e}")
+                    return False
                 except FileNotFoundError:
                     print("Error: UPX is not installed or not found in PATH.")
                     sys.exit(1)
+    return True
 
 def is_pe_file(file_path) -> bool:
     try:
@@ -59,4 +51,4 @@ if __name__ == "__main__":
         sys.exit(1)
     
     directory = sys.argv[1]
-    pack_pe_files(directory)
+    pack_with_upx(directory)
