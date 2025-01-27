@@ -1,4 +1,4 @@
-import os
+import os, time
 import shutil
 import subprocess
 import sys
@@ -177,14 +177,25 @@ def pack_with_petite(directory, petite_path="petite") -> bool:
                     sys.exit(1)
     return True
 
+def main(binary_dir):
+    print("----------PACKER----------START----------")
+    #pack_with_upx(binary_dir)
+    #pack_with_mpress(binary_dir)
+    #pack_with_pecompact(binary_dir)
+    #pack_with_molebox(binary_dir)
+    #pack_with_petite(binary_dir)
+    print("----------PACKER---------- END ----------")
+
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python pack_pe_files.py <directory>")
-        sys.exit(1)
-    
-    directory = sys.argv[1]
-    #pack_with_upx(directory)
-    #pack_with_mpress(directory)
-    #pack_with_pecompact(directory)
-    #pack_with_molebox(directory)
-    pack_with_petite(directory)
+    print("[" + __file__ + "]'s last modified: %s" % time.ctime(os.path.getmtime(__file__)))
+    # Check if a parameter is provided
+    if len(sys.argv) == 2:
+        in_dir = sys.argv[1]
+        if not os.path.exists(in_dir):
+            print(f"Directory: '{in_dir}' does not exist.")
+            exit()
+        print(f"\n\nBinary Directory:\t\t{in_dir}")
+        main(in_dir)
+    else:
+        print("No input directory provided.")
+        print("Usage: python pack-unpack.py <directory>")
